@@ -38,3 +38,102 @@ body {
   border-left: 1px solid #e0e0e0;
   padding: 20px;
 }
+
+/* Projects Sidebar */
+.projects-sidebar h2 {
+  font-size: 18px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.projects-list {
+  margin-bottom: 20px;
+}
+
+.project-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.project-item:hover {
+  background: #f0f0f0;
+}
+
+.project-item.active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.project-item .delete-btn {
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0 8px;
+  line-height: 1;
+}
+
+.project-item.active .delete-btn {
+  color: white;
+}
+
+.project-item .delete-btn:hover {
+  color: #ff4444;
+}
+
+.new-project-btn {
+  width: 100%;
+  padding: 12px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.new-project-btn:hover {
+  background: #0056b3;
+}
+
+.create-project {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.create-project input {
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.create-project button {
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.create-project button:first-of-type {
+  background: #28a745;
+  color: white;
+}
+
+.create-project button:last-of-type {
+  background: #6c757d;
+  color: white;
+}
