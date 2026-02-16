@@ -134,6 +134,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
         <TaskModal
           projectId={projectId}
           taskId={editingTaskId}
+          defaultStatus={newTaskStatus || undefined}
           onClose={closeModal}
           onSave={handleSave}
         />

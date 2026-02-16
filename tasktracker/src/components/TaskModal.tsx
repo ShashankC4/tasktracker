@@ -4,14 +4,15 @@ import { getDatabase } from "../db";
 interface TaskModalProps {
   projectId: number;
   taskId?: number | null;
+  defaultStatus?: string; // Add this
   onClose: () => void;
   onSave: () => void;
 }
 
-export default function TaskModal({ projectId, taskId, onClose, onSave }: TaskModalProps) {
+export default function TaskModal({ projectId, taskId, defaultStatus, onClose, onSave }: TaskModalProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [status, setStatus] = useState("Not Started");
+  const [status, setStatus] = useState(defaultStatus || "Not Started");
   const [priority, setPriority] = useState("Medium");
   const [blocker, setBlocker] = useState("");
 
