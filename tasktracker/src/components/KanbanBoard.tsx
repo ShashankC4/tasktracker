@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getDatabase } from "../db";
+import TaskModal from "./TaskModal";
 
 interface Task {
   id: number;
@@ -30,6 +31,9 @@ const STATUSES = [
 
 export default function KanbanBoard({ projectId }: KanbanBoardProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
+  const [newTaskStatus, setNewTaskStatus] = useState<string | null>(null);
 
   useEffect(() => {
     if (projectId) {
@@ -50,6 +54,28 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
 
   function getTasksByStatus(status: string) {
     return tasks.filter(task => task.status === status);
+  }
+
+  function openCreateModal(status: string) {
+    setNewTaskStatus(status);
+    setEditingTaskId(null);
+    setIsModalOpen(true);
+  }
+
+  function openEditModal(taskId: number) {
+    setEditingTaskId(taskId);
+    setNewTaskStatus(null);
+    setIsModalOpen(true);
+  }
+
+  function closeModal() {
+    setIsModalOpen(false);
+    setEditingTaskId(null);
+    setNewTaskStatus(null);
+  }
+
+  function handleSave() {
+    loadTasks();
   }
 
   if (!projectId) {
@@ -75,7 +101,11 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
               
               <div className="column-tasks">
                 {statusTasks.map((task) => (
-                  <div key={task.id} className="task-card">
+                  <div 
+                    key={task.id} 
+                    className="task-card"
+                    onClick={() => openEditModal(task.id)}
+                  >
                     <div className="task-header">
                       <span className={`priority-indicator ${task.priority.toLowerCase()}`}></span>
                       <h4>{task.title}</h4>
@@ -89,11 +119,25 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
                 ))}
               </div>
               
-              <button className="add-task-btn">+ Add Task</button>
+              <button 
+                className="add-task-btn"
+                onClick={() => openCreateModal(status)}
+              >
+                + Add Task
+              </button>
             </div>
           );
         })}
       </div>
+
+      {isModalOpen && projectId && (
+        <TaskModal
+          projectId={projectId}
+          taskId={editingTaskId}
+          onClose={closeModal}
+          onSave={handleSave}
+        />
+      )}
     </div>
   );
 }
