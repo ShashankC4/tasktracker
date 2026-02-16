@@ -86,6 +86,17 @@ export default function TaskModal({ projectId, taskId, onClose, onSave }: TaskMo
     onClose();
   }
 
+  async function handleDelete() {
+  if (!taskId) return;
+  if (!confirm("Delete this task?")) return;
+
+  const db = await getDatabase();
+  await db.execute("DELETE FROM tasks WHERE id = ?", [taskId]);
+  
+  onSave(); // Refresh the list
+  onClose();
+}
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -148,6 +159,10 @@ export default function TaskModal({ projectId, taskId, onClose, onSave }: TaskMo
         </div>
 
         <div className="modal-footer">
+          {taskId && (
+            <button className="btn-delete" onClick={handleDelete}>Delete</button>
+          )}
+          <div style={{ flex: 1 }}></div>
           <button className="btn-secondary" onClick={onClose}>Cancel</button>
           <button className="btn-primary" onClick={handleSave}>Save Task</button>
         </div>

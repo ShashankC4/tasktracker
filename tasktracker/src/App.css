@@ -392,6 +392,21 @@ body {
   cursor: pointer;
 }
 
+.btn-delete {
+  padding: 10px 20px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-delete:hover {
+  background: #c82333;
+}
+
 .btn-secondary:hover {
   background: #5a6268;
 }
