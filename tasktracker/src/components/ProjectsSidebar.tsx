@@ -7,9 +7,13 @@ interface Project {
   created_at: string;
 }
 
-export default function ProjectsSidebar() {
+interface ProjectsSidebarProps {
+  selectedProjectId: number | null;
+  onSelectProject: (id: number) => void;
+}
+
+export default function ProjectsSidebar({ selectedProjectId, onSelectProject }: ProjectsSidebarProps) {
   const [projects, setProjects] = useState<Project[]>([]);
-  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
 
@@ -25,7 +29,7 @@ export default function ProjectsSidebar() {
     
     // Auto-select first project if none selected
     if (result.length > 0 && !selectedProjectId) {
-      setSelectedProjectId(result[0].id);
+      onSelectProject(result[0].id);
     }
   }
 
@@ -47,7 +51,7 @@ export default function ProjectsSidebar() {
     await db.execute("DELETE FROM projects WHERE id = ?", [id]);
     
     if (selectedProjectId === id) {
-      setSelectedProjectId(null);
+      onSelectProject(projects.filter(p => p.id !== id)[0]?.id || null);
     }
     loadProjects();
   }
@@ -61,7 +65,7 @@ export default function ProjectsSidebar() {
           <div
             key={project.id}
             className={`project-item ${selectedProjectId === project.id ? "active" : ""}`}
-            onClick={() => setSelectedProjectId(project.id)}
+            onClick={() => onSelectProject(project.id)}
           >
             <span>{project.name}</span>
             <button

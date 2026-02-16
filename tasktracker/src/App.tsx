@@ -1,9 +1,12 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 import { initDatabase } from "./db";
 import ProjectsSidebar from "./components/ProjectsSidebar";
+import KanbanBoard from "./components/KanbanBoard";
 
 function App() {
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+
   useEffect(() => {
     initDatabase().then(() => {
       console.log("Database initialized");
@@ -12,11 +15,13 @@ function App() {
 
   return (
     <div className="app-container">
-      <ProjectsSidebar />
+      <ProjectsSidebar 
+        selectedProjectId={selectedProjectId}
+        onSelectProject={setSelectedProjectId}
+      />
       
       <div className="main-content">
-        <h2>Kanban Board</h2>
-        <p>Select a project to see tasks</p>
+        <KanbanBoard projectId={selectedProjectId} />
       </div>
       
       <div className="sidebar-right">
