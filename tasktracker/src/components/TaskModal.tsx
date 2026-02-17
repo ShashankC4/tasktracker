@@ -4,7 +4,7 @@ import { getDatabase } from "../db";
 interface TaskModalProps {
   projectId: number;
   taskId?: number | null;
-  defaultStatus?: string; // Add this
+  defaultStatus?: string;
   onClose: () => void;
   onSave: () => void;
 }
@@ -15,6 +15,9 @@ export default function TaskModal({ projectId, taskId, defaultStatus, onClose, o
   const [status, setStatus] = useState(defaultStatus || "Not Started");
   const [priority, setPriority] = useState("Medium");
   const [blocker, setBlocker] = useState("");
+  const [assignedDate, setAssignedDate] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   const STATUSES = [
     "Not Started",
@@ -28,21 +31,36 @@ export default function TaskModal({ projectId, taskId, defaultStatus, onClose, o
 
   const PRIORITIES = ["High", "Medium", "Low"];
 
+  const STARTED_STATUSES = [
+    "Started",
+    "Code Changed",
+    "Local Tested",
+    "Beta Testing",
+    "PR Raised",
+    "Prod Deployed"
+  ];
+
   useEffect(() => {
     if (taskId) {
       loadTask();
     }
   }, [taskId]);
 
+  function formatDateForInput(dateStr: string | null): string {
+    if (!dateStr) return "";
+    // Handle both ISO format and SQLite format
+    return dateStr.split('T')[0].split(' ')[0];
+  }
+
   async function loadTask() {
     if (!taskId) return;
-    
+
     const db = await getDatabase();
-    const result = await db.select(
+    const result = await db.select<any[]>(
       "SELECT * FROM tasks WHERE id = ?",
       [taskId]
     );
-    
+
     if (result.length > 0) {
       const task = result[0];
       setTitle(task.title);
@@ -50,6 +68,9 @@ export default function TaskModal({ projectId, taskId, defaultStatus, onClose, o
       setStatus(task.status);
       setPriority(task.priority);
       setBlocker(task.blocker || "");
+      setAssignedDate(formatDateForInput(task.assigned_date));
+      setStartDate(formatDateForInput(task.start_date));
+      setEndDate(formatDateForInput(task.end_date));
     }
   }
 
@@ -60,6 +81,7 @@ export default function TaskModal({ projectId, taskId, defaultStatus, onClose, o
     }
 
     const db = await getDatabase();
+    const now = new Date().toISOString();
 
     if (taskId) {
       // Update existing task
@@ -70,16 +92,41 @@ export default function TaskModal({ projectId, taskId, defaultStatus, onClose, o
           status = ?, 
           priority = ?, 
           blocker = ?,
+          assigned_date = ?,
+          start_date = ?,
+          end_date = ?,
           updated_at = CURRENT_TIMESTAMP
         WHERE id = ?`,
-        [title, description, status, priority, blocker, taskId]
+        [
+          title,
+          description,
+          status,
+          priority,
+          blocker || null,
+          assignedDate || null,
+          startDate || null,
+          endDate || null,
+          taskId
+        ]
       );
     } else {
-      // Create new task
+      // Auto-set dates based on status when creating
+      const autoStartDate = STARTED_STATUSES.includes(status) ? now : null;
+      const autoEndDate = status === "Prod Deployed" ? now : null;
+
       await db.execute(
-        `INSERT INTO tasks (project_id, title, description, status, priority, blocker) 
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [projectId, title, description, status, priority, blocker]
+        `INSERT INTO tasks (project_id, title, description, status, priority, blocker, start_date, end_date) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          projectId,
+          title,
+          description,
+          status,
+          priority,
+          blocker || null,
+          autoStartDate,
+          autoEndDate
+        ]
       );
     }
 
@@ -88,15 +135,15 @@ export default function TaskModal({ projectId, taskId, defaultStatus, onClose, o
   }
 
   async function handleDelete() {
-  if (!taskId) return;
-  if (!confirm("Delete this task?")) return;
+    if (!taskId) return;
+    if (!confirm("Delete this task?")) return;
 
-  const db = await getDatabase();
-  await db.execute("DELETE FROM tasks WHERE id = ?", [taskId]);
-  
-  onSave(); // Refresh the list
-  onClose();
-}
+    const db = await getDatabase();
+    await db.execute("DELETE FROM tasks WHERE id = ?", [taskId]);
+
+    onSave();
+    onClose();
+  }
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -124,7 +171,7 @@ export default function TaskModal({ projectId, taskId, defaultStatus, onClose, o
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Task description (optional)"
-              rows={4}
+              rows={3}
             />
           </div>
 
@@ -156,6 +203,46 @@ export default function TaskModal({ projectId, taskId, defaultStatus, onClose, o
               onChange={(e) => setBlocker(e.target.value)}
               placeholder="What's blocking this task? (optional)"
             />
+          </div>
+
+          {/* Dates */}
+          <div className="form-row">
+            <div className="form-group">
+              <label>Assigned Date</label>
+              <input
+                type="date"
+                value={assignedDate}
+                onChange={(e) => setAssignedDate(e.target.value)}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Start Date</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>End Date</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              disabled={status !== "Prod Deployed"}
+              style={{
+                opacity: status !== "Prod Deployed" ? 0.5 : 1,
+                cursor: status !== "Prod Deployed" ? 'not-allowed' : 'pointer'
+              }}
+            />
+            {status !== "Prod Deployed" && (
+              <small style={{ color: '#7d8590', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                Only editable when status is Prod Deployed
+              </small>
+            )}
           </div>
         </div>
 

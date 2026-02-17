@@ -41,6 +41,15 @@ const STATUSES = [
   "Prod Deployed"
 ];
 
+const STARTED_STATUSES = [
+  "Started",
+  "Code Changed",
+  "Local Tested",
+  "Beta Testing",
+  "PR Raised",
+  "Prod Deployed"
+];
+
 export default function KanbanBoard({ projectId, scrollToTaskId }: KanbanBoardProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -65,45 +74,57 @@ export default function KanbanBoard({ projectId, scrollToTaskId }: KanbanBoardPr
   }, [projectId]);
 
   // Save scroll position when switching projects
-useEffect(() => {
-  return () => {
+  useEffect(() => {
+    return () => {
+      if (projectId && kanbanRef.current) {
+        setScrollPositions(prev => ({
+          ...prev,
+          [projectId]: kanbanRef.current!.scrollLeft
+        }));
+      }
+    };
+  }, [projectId]);
+
+  // Restore scroll position ONLY when project changes (removed tasks dependency)
+  useEffect(() => {
     if (projectId && kanbanRef.current) {
-      setScrollPositions(prev => ({
-        ...prev,
-        [projectId]: kanbanRef.current!.scrollLeft
-      }));
+      const savedPosition = scrollPositions[projectId] || 0;
+      kanbanRef.current.scrollLeft = savedPosition;
     }
-  };
-}, [projectId]);
+  }, [projectId]); // <-- removed "tasks" from here
 
-// Restore scroll position when switching projects
-useEffect(() => {
-  if (projectId && kanbanRef.current) {
-    const savedPosition = scrollPositions[projectId] || 0;
-    kanbanRef.current.scrollLeft = savedPosition;
-  }
-}, [projectId, tasks]);
+  // Scroll to task when search result clicked
+  useEffect(() => {
+    if (!scrollToTaskId) return;
 
-// Scroll to task when search result clicked
-useEffect(() => {
-  if (!scrollToTaskId) return;
-
-  const taskElement = document.getElementById(`task-${scrollToTaskId}`);
-  if (taskElement) {
-    taskElement.scrollIntoView({ behavior: "smooth", block: "center" });
-    taskElement.classList.add("task-highlight");
-    setTimeout(() => {
-      taskElement.classList.remove("task-highlight");
-    }, 2000);
-  }
-}, [scrollToTaskId, tasks]);
+    const taskElement = document.getElementById(`task-${scrollToTaskId}`);
+    if (taskElement) {
+      taskElement.scrollIntoView({ behavior: "smooth", block: "center" });
+      taskElement.classList.add("task-highlight");
+      setTimeout(() => {
+        taskElement.classList.remove("task-highlight");
+      }, 2000);
+    }
+  }, [scrollToTaskId, tasks]);
 
   async function loadTasks() {
     if (!projectId) return;
-    
+
     const db = await getDatabase();
     const result = await db.select<Task[]>(
-      "SELECT * FROM tasks WHERE project_id = ? ORDER BY created_at DESC",
+      `SELECT * FROM tasks 
+       WHERE project_id = ? 
+       AND (
+         status != 'Prod Deployed' 
+         OR (
+           status = 'Prod Deployed' 
+           AND (
+             end_date IS NULL
+             OR end_date >= datetime('now', '-7 days')
+           )
+         )
+       )
+       ORDER BY created_at DESC`,
       [projectId]
     );
     setTasks(result);
@@ -153,14 +174,16 @@ useEffect(() => {
     if (!task || task.status === newStatus) return;
 
     const db = await getDatabase();
-    
+
     let updateQuery = "UPDATE tasks SET status = ?, updated_at = CURRENT_TIMESTAMP";
     let params: any[] = [newStatus];
 
-    if (newStatus === "Started" && !task.start_date) {
+    // Set start_date when moving to any started status (if not already set)
+    if (STARTED_STATUSES.includes(newStatus) && !task.start_date) {
       updateQuery += ", start_date = CURRENT_TIMESTAMP";
     }
 
+    // Set end_date when moving to Prod Deployed (if not already set)
     if (newStatus === "Prod Deployed" && !task.end_date) {
       updateQuery += ", end_date = CURRENT_TIMESTAMP";
     }
@@ -181,9 +204,9 @@ useEffect(() => {
   }
 
   return (
-    <DndContext 
-      sensors={sensors} 
-      collisionDetection={closestCenter} 
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
@@ -191,14 +214,14 @@ useEffect(() => {
         <div className="kanban-columns">
           {STATUSES.map((status) => {
             const statusTasks = getTasksByStatus(status);
-            
+
             return (
               <DroppableColumn key={status} id={status}>
                 <div className="column-header">
                   <h3>{status}</h3>
                   <span className="task-count">{statusTasks.length}</span>
                 </div>
-                
+
                 <div className="column-tasks">
                   {statusTasks.map((task) => (
                     <DraggableTask
@@ -208,8 +231,8 @@ useEffect(() => {
                     />
                   ))}
                 </div>
-                
-                <button 
+
+                <button
                   className="add-task-btn"
                   onClick={() => openCreateModal(status)}
                 >
@@ -253,7 +276,7 @@ useEffect(() => {
 // Droppable Column
 function DroppableColumn({ id, children }: { id: string; children: React.ReactNode }) {
   const { setNodeRef } = useDroppable({ id });
-  
+
   return (
     <div ref={setNodeRef} className="kanban-column">
       {children}
@@ -275,7 +298,7 @@ function DraggableTask({ task, onEdit }: { task: Task; onEdit: () => void }) {
       {...attributes}
       className={`task-card priority-${task.priority.toLowerCase()}`}
       onClick={onEdit}
-      style={{ 
+      style={{
         opacity: isDragging ? 0.3 : 1,
         cursor: isDragging ? 'grabbing' : 'grab'
       }}
