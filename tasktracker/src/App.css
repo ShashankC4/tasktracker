@@ -18,11 +18,14 @@ body {
   width: 100vw;
 }
 
-.sidebar-left {
-  width: 240px;
+.projects-sidebar {
+  width: 260px;
+  min-width: 260px;
+  flex-shrink: 0;
   background-color: #f8f9fa;
   border-right: 1px solid #e0e0e0;
   padding: 20px;
+  overflow-y: auto;
 }
 
 .main-content {
