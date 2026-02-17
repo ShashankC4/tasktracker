@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getDatabase } from "../db";
 import {
   DndContext,
@@ -10,7 +10,6 @@ import {
 } from "@dnd-kit/core";
 import {
   SortableContext,
-  sortableKeyboardCoordinates,
   verticalListSortingStrategy,
   useSortable,
   arrayMove,
@@ -24,6 +23,15 @@ interface Project {
   created_at: string;
 }
 
+interface TaskSearchResult {
+  id: number;
+  title: string;
+  project_id: number;
+  project_name: string;
+  status: string;
+  priority: string;
+}
+
 interface ProjectsSidebarProps {
   selectedProjectId: number | null;
   onSelectProject: (id: number | null) => void;
@@ -33,6 +41,10 @@ export default function ProjectsSidebar({ selectedProjectId, onSelectProject }: 
   const [projects, setProjects] = useState<Project[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<TaskSearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -46,6 +58,26 @@ export default function ProjectsSidebar({ selectedProjectId, onSelectProject }: 
     loadProjects();
   }, []);
 
+  useEffect(() => {
+  function handleClickOutside(event: MouseEvent) {
+    if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+      setSearchQuery("");
+      setSearchResults([]);
+    }
+  }
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (searchQuery.trim().length > 1) {
+      searchTasks(searchQuery);
+    } else {
+      setSearchResults([]);
+      setIsSearching(false);
+    }
+  }, [searchQuery]);
+
   async function loadProjects() {
     const db = await getDatabase();
     const result = await db.select<Project[]>(
@@ -58,12 +90,32 @@ export default function ProjectsSidebar({ selectedProjectId, onSelectProject }: 
     }
   }
 
+  async function searchTasks(query: string) {
+    setIsSearching(true);
+    const db = await getDatabase();
+    const results = await db.select<TaskSearchResult[]>(
+      `SELECT t.id, t.title, t.project_id, t.status, t.priority, p.name as project_name
+       FROM tasks t
+       JOIN projects p ON t.project_id = p.id
+       WHERE t.title LIKE ?
+       ORDER BY t.created_at DESC
+       LIMIT 20`,
+      [`%${query}%`]
+    );
+    setSearchResults(results);
+  }
+
+  function handleSearchResultClick(result: TaskSearchResult) {
+    onSelectProject(result.project_id);
+    setSearchQuery("");
+    setSearchResults([]);
+    setIsSearching(false);
+  }
+
   async function createProject() {
     if (!newProjectName.trim()) return;
 
     const db = await getDatabase();
-
-    // Set order_index to last position
     const maxOrder = projects.length > 0
       ? Math.max(...projects.map(p => p.order_index)) + 1
       : 0;
@@ -98,11 +150,9 @@ export default function ProjectsSidebar({ selectedProjectId, onSelectProject }: 
     const oldIndex = projects.findIndex(p => p.id === Number(active.id));
     const newIndex = projects.findIndex(p => p.id === Number(over.id));
 
-    // Reorder array
     const reordered = arrayMove(projects, oldIndex, newIndex);
-    setProjects(reordered); // Optimistic update
+    setProjects(reordered);
 
-    // Save new order to DB
     const db = await getDatabase();
     for (let i = 0; i < reordered.length; i++) {
       await db.execute(
@@ -114,6 +164,44 @@ export default function ProjectsSidebar({ selectedProjectId, onSelectProject }: 
 
   return (
     <div className="projects-sidebar">
+
+      {/* Search Bar */}
+      <div className="search-container" ref={searchRef}>
+        <input
+          type="text"
+          className="search-input"
+          placeholder="🔍 Search tasks..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+
+        {/* Search Results Dropdown */}
+        {searchQuery.length > 1 && (
+          <div className="search-results">
+            {searchResults.length === 0 ? (
+              <div className="search-no-results">No tasks found</div>
+            ) : (
+              searchResults.map((result) => (
+                <div
+                  key={result.id}
+                  className="search-result-item"
+                  onClick={() => handleSearchResultClick(result)}
+                >
+                  <div className="search-result-title">{result.title}</div>
+                  <div className="search-result-meta">
+                    <span className="search-result-project">{result.project_name}</span>
+                    <span className={`search-result-priority priority-${result.priority.toLowerCase()}`}>
+                      {result.priority}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Projects List */}
       <h2>Projects</h2>
 
       <div className="projects-list">
@@ -195,7 +283,6 @@ function SortableProject({
       className={`project-item ${isActive ? "active" : ""}`}
       onClick={onSelect}
     >
-      {/* Drag handle */}
       <span
         className="drag-handle"
         {...listeners}
@@ -204,9 +291,7 @@ function SortableProject({
       >
         ⠿
       </span>
-
       <span className="project-name">{project.name}</span>
-
       <button
         className="delete-btn"
         onClick={(e) => {
