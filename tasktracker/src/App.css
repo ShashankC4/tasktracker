@@ -563,3 +563,27 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #8b949e;
 }
+
+/* Project drag handle */
+.drag-handle {
+  color: #444c56;
+  cursor: grab;
+  font-size: 16px;
+  padding-right: 6px;
+  flex-shrink: 0;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.project-item:hover .drag-handle {
+  color: #adbac7;
+}
+
+.project-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
