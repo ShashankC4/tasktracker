@@ -56,7 +56,7 @@ export default function WorkBuddy() {
       projectTasks.forEach(t => {
         context += `  - "${t.title}" | Status: ${t.status} | Priority: ${t.priority}`;
         if (t.blocker) context += ` | Blocker: ${t.blocker}`;
-        if (t.description) context += ` | Note: ${t.description}`;
+        if (t.description) context += ` | Description: ${t.description}`;
         if (t.start_date) context += ` | Started: ${t.start_date.split('T')[0]}`;
         if (t.end_date) context += ` | Completed: ${t.end_date.split('T')[0]}`;
         context += `\n`;
