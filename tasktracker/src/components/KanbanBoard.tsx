@@ -235,7 +235,7 @@ function DraggableTask({ task, onEdit }: { task: Task; onEdit: () => void }) {
       ref={setNodeRef}
       {...listeners}
       {...attributes}
-      className="task-card"
+      className={`task-card priority-${task.priority.toLowerCase()}`}
       onClick={onEdit}
       style={{ 
         opacity: isDragging ? 0.3 : 1,

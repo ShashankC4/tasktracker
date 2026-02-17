@@ -10,104 +10,123 @@
 
 body {
   font-family: system-ui, -apple-system, sans-serif;
+  background-color: #0d1117;
+  color: #e6edf3;
 }
+
+/* ─── Layout ─────────────────────────────────────────── */
 
 .app-container {
   display: flex;
   height: 100vh;
   width: 100vw;
+  background-color: #0d1117;
+  overflow: hidden;
 }
+
+.main-content {
+  flex: 1;
+  background-color: #0d1117;
+  padding: 20px;
+  overflow-x: auto;
+}
+
+/* ─── Projects Sidebar ───────────────────────────────── */
 
 .projects-sidebar {
   width: 260px;
   min-width: 260px;
   flex-shrink: 0;
-  background-color: #f8f9fa;
-  border-right: 1px solid #e0e0e0;
+  background-color: #010409;
+  border-right: 1px solid #21262d;
   padding: 20px;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
-.main-content {
-  flex: 1;
-  background-color: #ffffff;
-  padding: 20px;
-  overflow-x: auto;
-}
-
-.sidebar-right {
-  width: 320px;
-  background-color: #f8f9fa;
-  border-left: 1px solid #e0e0e0;
-  padding: 20px;
-}
-
-/* Projects Sidebar */
 .projects-sidebar h2 {
-  font-size: 18px;
-  margin-bottom: 20px;
-  color: #333;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #adbac7;
+  margin-bottom: 12px;
 }
 
 .projects-list {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+  flex: 1;
 }
 
 .project-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
-  margin-bottom: 8px;
-  background: white;
-  border: 1px solid #e0e0e0;
+  padding: 8px 12px;
+  margin-bottom: 4px;
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
+  color: #e6edf3;
+  font-size: 14px;
 }
 
 .project-item:hover {
-  background: #f0f0f0;
+  background: #161b22;
+  border-color: #30363d;
 }
 
 .project-item.active {
-  background: #007bff;
-  color: white;
-  border-color: #007bff;
+  background: #161b22;
+  border-color: #388bfd;
+  color: #58a6ff;
 }
 
 .project-item .delete-btn {
   background: none;
   border: none;
-  color: #999;
-  font-size: 24px;
+  color: #7d8590;
+  font-size: 18px;
   cursor: pointer;
-  padding: 0 8px;
+  padding: 0 4px;
   line-height: 1;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.project-item:hover .delete-btn {
+  opacity: 1;
 }
 
 .project-item.active .delete-btn {
-  color: white;
+  color: #58a6ff;
+  opacity: 1;
 }
 
 .project-item .delete-btn:hover {
-  color: #ff4444;
+  color: #f85149;
 }
 
 .new-project-btn {
   width: 100%;
-  padding: 12px;
-  background: #007bff;
-  color: white;
-  border: none;
+  padding: 8px 12px;
+  background: transparent;
+  color: #7d8590;
+  border: 1px dashed #30363d;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
+  text-align: left;
+  transition: all 0.15s;
 }
 
 .new-project-btn:hover {
-  background: #0056b3;
+  color: #58a6ff;
+  border-color: #388bfd;
+  background: #161b22;
 }
 
 .create-project {
@@ -117,31 +136,48 @@ body {
 }
 
 .create-project input {
-  padding: 10px;
-  border: 1px solid #e0e0e0;
+  padding: 8px 12px;
+  background: #1c2128;
+  border: 1px solid #30363d;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 13px;
+  color: #e6edf3;
+  outline: none;
+}
+
+.create-project input:focus {
+  border-color: #388bfd;
 }
 
 .create-project button {
-  padding: 10px;
+  padding: 8px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .create-project button:first-of-type {
-  background: #28a745;
-  color: white;
+  background: #238636;
+  color: #ffffff;
+}
+
+.create-project button:first-of-type:hover {
+  background: #2ea043;
 }
 
 .create-project button:last-of-type {
-  background: #6c757d;
-  color: white;
+  background: #21262d;
+  color: #e6edf3;
 }
 
-/* Kanban Board */
+.create-project button:last-of-type:hover {
+  background: #30363d;
+}
+
+/* ─── Kanban Board ───────────────────────────────────── */
+
 .kanban-board {
   height: 100%;
   overflow-x: auto;
@@ -149,16 +185,17 @@ body {
 
 .kanban-columns {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   height: 100%;
   padding-bottom: 20px;
 }
 
 .kanban-column {
-  min-width: 280px;
-  background: #f8f9fa;
+  min-width: 260px;
+  background: #161b22;
+  border: 1px solid #21262d;
   border-radius: 8px;
-  padding: 16px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
 }
@@ -167,114 +204,150 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .column-header h3 {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
-  color: #333;
+  color: #7d8590;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   margin: 0;
 }
 
 .task-count {
-  background: #dee2e6;
-  color: #495057;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 12px;
+  background: #21262d;
+  color: #7d8590;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-size: 11px;
   font-weight: 600;
 }
 
 .column-tasks {
   flex: 1;
   overflow-y: auto;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
+/* ─── Task Cards ─────────────────────────────────────── */
+
 .task-card {
-  background: white;
-  border: 1px solid #e0e0e0;
+  cursor: grab;
+  background: #0d1117;
+  border: 1px solid #21262d;
   border-radius: 6px;
   padding: 12px;
   margin-bottom: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  border-left: 3px solid transparent;
+}
+
+/* Priority left border */
+.task-card.priority-high {
+  border-left-color: #f85149;
+}
+
+.task-card.priority-medium {
+  border-left-color: #d29922;
+}
+
+.task-card.priority-low {
+  border-left-color: #238636;
 }
 
 .task-card:hover {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  transform: translateY(-2px);
+  border-color: #388bfd;
+  box-shadow: 0 0 0 1px #388bfd22;
+}
+
+.task-card:active {
+  cursor: grabbing;
 }
 
 .task-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .priority-indicator {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 .priority-indicator.high {
-  background: #dc3545;
+  background: #f85149;
 }
 
 .priority-indicator.medium {
-  background: #ffc107;
+  background: #d29922;
 }
 
 .priority-indicator.low {
-  background: #28a745;
+  background: #238636;
 }
 
 .task-header h4 {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   margin: 0;
-  color: #333;
+  color: #e6edf3;
+  line-height: 1.4;
 }
 
 .task-blocker {
-  font-size: 12px;
-  color: #dc3545;
-  background: #fff5f5;
-  padding: 6px 8px;
+  font-size: 11px;
+  color: #f85149;
+  background: #f8514910;
+  border: 1px solid #f8514920;
+  padding: 4px 8px;
   border-radius: 4px;
-  margin-top: 8px;
+  margin-top: 6px;
 }
+
+/* ─── Add Task Button ────────────────────────────────── */
 
 .add-task-btn {
   width: 100%;
-  padding: 10px;
-  background: white;
-  border: 2px dashed #dee2e6;
+  padding: 8px;
+  background: transparent;
+  border: 1px dashed #21262d;
   border-radius: 6px;
-  color: #6c757d;
+  color: #7d8590;
   cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
+  font-size: 12px;
+  transition: all 0.15s;
 }
 
 .add-task-btn:hover {
-  background: #f8f9fa;
-  border-color: #007bff;
-  color: #007bff;
+  background: #21262d;
+  border-color: #388bfd;
+  color: #58a6ff;
 }
 
-/* Modal */
+/* ─── Drag Overlay ───────────────────────────────────── */
+
+.task-card-dragging {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  transform: rotate(1.5deg);
+  cursor: grabbing !important;
+  border-color: #388bfd !important;
+}
+
+/* ─── Modal ──────────────────────────────────────────── */
+
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -282,10 +355,11 @@ body {
 }
 
 .modal-content {
-  background: white;
-  border-radius: 8px;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 10px;
   width: 90%;
-  max-width: 600px;
+  max-width: 560px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
@@ -295,32 +369,36 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 16px 20px;
+  border-bottom: 1px solid #21262d;
 }
 
 .modal-header h2 {
   margin: 0;
-  font-size: 20px;
-  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+  color: #e6edf3;
 }
 
 .close-btn {
   background: none;
   border: none;
-  font-size: 28px;
-  color: #999;
+  font-size: 22px;
+  color: #7d8590;
   cursor: pointer;
   padding: 0;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 4px;
+  transition: all 0.15s;
 }
 
 .close-btn:hover {
-  color: #333;
+  color: #e6edf3;
+  background: #21262d;
 }
 
 .modal-body {
@@ -335,24 +413,42 @@ body {
 .form-group label {
   display: block;
   margin-bottom: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
+  font-size: 12px;
+  font-weight: 600;
+  color: #7d8590;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .form-group input,
 .form-group textarea,
 .form-group select {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #e0e0e0;
+  padding: 8px 12px;
+  background: #0d1117;
+  border: 1px solid #30363d;
   border-radius: 6px;
   font-size: 14px;
   font-family: inherit;
+  color: #e6edf3;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  border-color: #388bfd;
+}
+
+.form-group select option {
+  background: #161b22;
+  color: #e6edf3;
 }
 
 .form-group textarea {
   resize: vertical;
+  min-height: 80px;
 }
 
 .form-row {
@@ -363,79 +459,107 @@ body {
 
 .modal-footer {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
   gap: 12px;
-  padding: 20px;
-  border-top: 1px solid #e0e0e0;
+  padding: 16px 20px;
+  border-top: 1px solid #21262d;
 }
 
+/* ─── Buttons ────────────────────────────────────────── */
+
 .btn-primary {
-  padding: 10px 20px;
-  background: #007bff;
-  color: white;
+  padding: 8px 18px;
+  background: #238636;
+  color: #ffffff;
   border: none;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
+  transition: background 0.15s;
 }
 
 .btn-primary:hover {
-  background: #0056b3;
+  background: #2ea043;
 }
 
 .btn-secondary {
-  padding: 10px 20px;
-  background: #6c757d;
-  color: white;
-  border: none;
+  padding: 8px 18px;
+  background: #21262d;
+  color: #e6edf3;
+  border: 1px solid #30363d;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-}
-
-.btn-delete {
-  padding: 10px 20px;
-  background: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.btn-delete:hover {
-  background: #c82333;
+  transition: all 0.15s;
 }
 
 .btn-secondary:hover {
-  background: #5a6268;
+  background: #30363d;
+  border-color: #8b949e;
 }
 
-/* Drag and Drop - Smooth */
-.task-card {
-  cursor: grab;
-  background: white;
-  border: 1px solid #e0e0e0;
+.btn-delete {
+  padding: 8px 18px;
+  background: transparent;
+  color: #f85149;
+  border: 1px solid #f8514940;
   border-radius: 6px;
-  padding: 12px;
-  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
 }
 
-.task-card:hover {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+.btn-delete:hover {
+  background: #f8514915;
+  border-color: #f85149;
 }
 
-.task-card:active {
-  cursor: grabbing;
+/* ─── Right Sidebar (WorkBuddy) ──────────────────────── */
+
+.sidebar-right {
+  width: 300px;
+  min-width: 300px;
+  flex-shrink: 0;
+  background-color: #010409;
+  border-left: 1px solid #21262d;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
 }
 
+.sidebar-right h2 {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7d8590;
+  margin-bottom: 12px;
+}
 
-/* Task card dragging overlay */
-.task-card-dragging {
-  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-  transform: rotate(2deg);
-  cursor: grabbing !important;
+.sidebar-right p {
+  font-size: 13px;
+  color: #7d8590;
+}
+
+/* ─── Scrollbar ──────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #8b949e;
 }
