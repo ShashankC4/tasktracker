@@ -10,7 +10,7 @@
 
 body {
   font-family: system-ui, -apple-system, sans-serif;
-  background-color: #0d1117;
+  background-color: #161b22;
   color: #e6edf3;
 }
 
@@ -20,13 +20,13 @@ body {
   display: flex;
   height: 100vh;
   width: 100vw;
-  background-color: #0d1117;
+  background-color: #161b22;
   overflow: hidden;
 }
 
 .main-content {
   flex: 1;
-  background-color: #0d1117;
+  background-color: #161b22;
   padding: 20px;
   overflow-x: auto;
 }
@@ -37,8 +37,8 @@ body {
   width: 260px;
   min-width: 260px;
   flex-shrink: 0;
-  background-color: #010409;
-  border-right: 1px solid #21262d;
+  background-color: #0d1117;
+  border-right: 1px solid #30363d;
   padding: 20px;
   overflow-y: auto;
   display: flex;
@@ -50,7 +50,7 @@ body {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #adbac7;
+  color: #cdd9e5;
   margin-bottom: 12px;
 }
 
@@ -70,17 +70,17 @@ body {
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s;
-  color: #e6edf3;
+  color: #cdd9e5;
   font-size: 14px;
 }
 
 .project-item:hover {
-  background: #161b22;
-  border-color: #30363d;
+  background: #1c2128;
+  border-color: #444c56;
 }
 
 .project-item.active {
-  background: #161b22;
+  background: #1c2128;
   border-color: #388bfd;
   color: #58a6ff;
 }
@@ -88,7 +88,7 @@ body {
 .project-item .delete-btn {
   background: none;
   border: none;
-  color: #7d8590;
+  color: #adbac7;
   font-size: 18px;
   cursor: pointer;
   padding: 0 4px;
@@ -114,8 +114,8 @@ body {
   width: 100%;
   padding: 8px 12px;
   background: transparent;
-  color: #7d8590;
-  border: 1px dashed #30363d;
+  color: #adbac7;
+  border: 1px dashed #444c56;
   border-radius: 6px;
   cursor: pointer;
   font-size: 13px;
@@ -126,7 +126,7 @@ body {
 .new-project-btn:hover {
   color: #58a6ff;
   border-color: #388bfd;
-  background: #161b22;
+  background: #1c2128;
 }
 
 .create-project {
@@ -138,7 +138,7 @@ body {
 .create-project input {
   padding: 8px 12px;
   background: #1c2128;
-  border: 1px solid #30363d;
+  border: 1px solid #444c56;
   border-radius: 6px;
   font-size: 13px;
   color: #e6edf3;
@@ -168,12 +168,12 @@ body {
 }
 
 .create-project button:last-of-type {
-  background: #21262d;
+  background: #30363d;
   color: #e6edf3;
 }
 
 .create-project button:last-of-type:hover {
-  background: #30363d;
+  background: #444c56;
 }
 
 /* ─── Kanban Board ───────────────────────────────────── */
@@ -192,8 +192,8 @@ body {
 
 .kanban-column {
   min-width: 260px;
-  background: #161b22;
-  border: 1px solid #21262d;
+  background: #1c2128;
+  border: 1px solid #30363d;
   border-radius: 8px;
   padding: 14px;
   display: flex;
@@ -210,15 +210,15 @@ body {
 .column-header h3 {
   font-size: 12px;
   font-weight: 600;
-  color: #7d8590;
+  color: #cdd9e5;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin: 0;
 }
 
 .task-count {
-  background: #21262d;
-  color: #7d8590;
+  background: #30363d;
+  color: #adbac7;
   padding: 2px 7px;
   border-radius: 10px;
   font-size: 11px;
@@ -235,8 +235,8 @@ body {
 
 .task-card {
   cursor: grab;
-  background: #0d1117;
-  border: 1px solid #21262d;
+  background: #22272e;
+  border: 1px solid #444c56;
   border-radius: 6px;
   padding: 12px;
   margin-bottom: 8px;
@@ -254,7 +254,7 @@ body {
 }
 
 .task-card.priority-low {
-  border-left-color: #238636;
+  border-left-color: #3fb950;
 }
 
 .task-card:hover {
@@ -289,7 +289,7 @@ body {
 }
 
 .priority-indicator.low {
-  background: #238636;
+  background: #3fb950;
 }
 
 .task-header h4 {
@@ -303,8 +303,8 @@ body {
 .task-blocker {
   font-size: 11px;
   color: #f85149;
-  background: #f8514910;
-  border: 1px solid #f8514920;
+  background: #f8514915;
+  border: 1px solid #f8514930;
   padding: 4px 8px;
   border-radius: 4px;
   margin-top: 6px;
@@ -316,16 +316,16 @@ body {
   width: 100%;
   padding: 8px;
   background: transparent;
-  border: 1px dashed #21262d;
+  border: 1px dashed #30363d;
   border-radius: 6px;
-  color: #7d8590;
+  color: #adbac7;
   cursor: pointer;
   font-size: 12px;
   transition: all 0.15s;
 }
 
 .add-task-btn:hover {
-  background: #21262d;
+  background: #30363d;
   border-color: #388bfd;
   color: #58a6ff;
 }
@@ -355,8 +355,8 @@ body {
 }
 
 .modal-content {
-  background: #161b22;
-  border: 1px solid #30363d;
+  background: #1c2128;
+  border: 1px solid #444c56;
   border-radius: 10px;
   width: 90%;
   max-width: 560px;
@@ -370,7 +370,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  border-bottom: 1px solid #21262d;
+  border-bottom: 1px solid #30363d;
 }
 
 .modal-header h2 {
@@ -384,7 +384,7 @@ body {
   background: none;
   border: none;
   font-size: 22px;
-  color: #7d8590;
+  color: #adbac7;
   cursor: pointer;
   padding: 0;
   width: 28px;
@@ -398,7 +398,7 @@ body {
 
 .close-btn:hover {
   color: #e6edf3;
-  background: #21262d;
+  background: #30363d;
 }
 
 .modal-body {
@@ -415,7 +415,7 @@ body {
   margin-bottom: 6px;
   font-size: 12px;
   font-weight: 600;
-  color: #7d8590;
+  color: #adbac7;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -425,8 +425,8 @@ body {
 .form-group select {
   width: 100%;
   padding: 8px 12px;
-  background: #0d1117;
-  border: 1px solid #30363d;
+  background: #22272e;
+  border: 1px solid #444c56;
   border-radius: 6px;
   font-size: 14px;
   font-family: inherit;
@@ -442,7 +442,7 @@ body {
 }
 
 .form-group select option {
-  background: #161b22;
+  background: #1c2128;
   color: #e6edf3;
 }
 
@@ -462,7 +462,7 @@ body {
   align-items: center;
   gap: 12px;
   padding: 16px 20px;
-  border-top: 1px solid #21262d;
+  border-top: 1px solid #30363d;
 }
 
 /* ─── Buttons ────────────────────────────────────────── */
@@ -485,9 +485,9 @@ body {
 
 .btn-secondary {
   padding: 8px 18px;
-  background: #21262d;
+  background: #30363d;
   color: #e6edf3;
-  border: 1px solid #30363d;
+  border: 1px solid #444c56;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
@@ -496,7 +496,7 @@ body {
 }
 
 .btn-secondary:hover {
-  background: #30363d;
+  background: #444c56;
   border-color: #8b949e;
 }
 
@@ -523,8 +523,8 @@ body {
   width: 300px;
   min-width: 300px;
   flex-shrink: 0;
-  background-color: #010409;
-  border-left: 1px solid #21262d;
+  background-color: #0d1117;
+  border-left: 1px solid #30363d;
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -535,13 +535,13 @@ body {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #7d8590;
+  color: #cdd9e5;
   margin-bottom: 12px;
 }
 
 .sidebar-right p {
   font-size: 13px;
-  color: #7d8590;
+  color: #adbac7;
 }
 
 /* ─── Scrollbar ──────────────────────────────────────── */
@@ -556,7 +556,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #30363d;
+  background: #444c56;
   border-radius: 3px;
 }
 
