@@ -35,9 +35,10 @@ interface TaskSearchResult {
 interface ProjectsSidebarProps {
   selectedProjectId: number | null;
   onSelectProject: (id: number | null) => void;
+  onSearchResultClick: (projectId: number, taskId: number) => void;
 }
 
-export default function ProjectsSidebar({ selectedProjectId, onSelectProject }: ProjectsSidebarProps) {
+export default function ProjectsSidebar({ selectedProjectId, onSelectProject, onSearchResultClick }: ProjectsSidebarProps) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
@@ -107,6 +108,7 @@ export default function ProjectsSidebar({ selectedProjectId, onSelectProject }: 
 
   function handleSearchResultClick(result: TaskSearchResult) {
     onSelectProject(result.project_id);
+    onSearchResultClick(result.project_id, result.id);
     setSearchQuery("");
     setSearchResults([]);
     setIsSearching(false);

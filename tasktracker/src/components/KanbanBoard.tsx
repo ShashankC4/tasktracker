@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getDatabase } from "../db";
 import TaskModal from "./TaskModal";
 import {
@@ -28,6 +28,7 @@ interface Task {
 
 interface KanbanBoardProps {
   projectId: number | null;
+  scrollToTaskId: number | null;
 }
 
 const STATUSES = [
@@ -40,12 +41,14 @@ const STATUSES = [
   "Prod Deployed"
 ];
 
-export default function KanbanBoard({ projectId }: KanbanBoardProps) {
+export default function KanbanBoard({ projectId, scrollToTaskId }: KanbanBoardProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
   const [newTaskStatus, setNewTaskStatus] = useState<string | null>(null);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [scrollPositions, setScrollPositions] = useState<Record<number, number>>({});
+  const kanbanRef = useRef<HTMLDivElement>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -60,6 +63,40 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
       loadTasks();
     }
   }, [projectId]);
+
+  // Save scroll position when switching projects
+useEffect(() => {
+  return () => {
+    if (projectId && kanbanRef.current) {
+      setScrollPositions(prev => ({
+        ...prev,
+        [projectId]: kanbanRef.current!.scrollLeft
+      }));
+    }
+  };
+}, [projectId]);
+
+// Restore scroll position when switching projects
+useEffect(() => {
+  if (projectId && kanbanRef.current) {
+    const savedPosition = scrollPositions[projectId] || 0;
+    kanbanRef.current.scrollLeft = savedPosition;
+  }
+}, [projectId, tasks]);
+
+// Scroll to task when search result clicked
+useEffect(() => {
+  if (!scrollToTaskId) return;
+
+  const taskElement = document.getElementById(`task-${scrollToTaskId}`);
+  if (taskElement) {
+    taskElement.scrollIntoView({ behavior: "smooth", block: "center" });
+    taskElement.classList.add("task-highlight");
+    setTimeout(() => {
+      taskElement.classList.remove("task-highlight");
+    }, 2000);
+  }
+}, [scrollToTaskId, tasks]);
 
   async function loadTasks() {
     if (!projectId) return;
@@ -150,7 +187,7 @@ export default function KanbanBoard({ projectId }: KanbanBoardProps) {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="kanban-board">
+      <div className="kanban-board" ref={kanbanRef}>
         <div className="kanban-columns">
           {STATUSES.map((status) => {
             const statusTasks = getTasksByStatus(status);
@@ -233,6 +270,7 @@ function DraggableTask({ task, onEdit }: { task: Task; onEdit: () => void }) {
   return (
     <div
       ref={setNodeRef}
+      id={`task-${task.id}`}
       {...listeners}
       {...attributes}
       className={`task-card priority-${task.priority.toLowerCase()}`}

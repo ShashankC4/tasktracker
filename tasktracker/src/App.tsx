@@ -6,6 +6,7 @@ import KanbanBoard from "./components/KanbanBoard";
 
 function App() {
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [scrollToTaskId, setScrollToTaskId] = useState<number | null>(null);
 
   useEffect(() => {
     initDatabase().then(() => {
@@ -13,15 +14,29 @@ function App() {
     });
   }, []);
 
+  function handleSelectProject(id: number | null) {
+    setSelectedProjectId(id);
+    setScrollToTaskId(null); // Reset scroll when switching projects
+  }
+
+  function handleSearchResultClick(projectId: number, taskId: number) {
+    setSelectedProjectId(projectId);
+    setScrollToTaskId(taskId);
+  }
+
   return (
     <div className="app-container">
-      <ProjectsSidebar 
+      <ProjectsSidebar
         selectedProjectId={selectedProjectId}
-        onSelectProject={setSelectedProjectId}
+        onSelectProject={handleSelectProject}
+        onSearchResultClick={handleSearchResultClick}
       />
       
       <div className="main-content">
-        <KanbanBoard projectId={selectedProjectId} />
+        <KanbanBoard
+          projectId={selectedProjectId}
+          scrollToTaskId={scrollToTaskId}
+        />
       </div>
       
       <div className="sidebar-right">
