@@ -3,6 +3,7 @@ import "./App.css";
 import { initDatabase } from "./db";
 import ProjectsSidebar from "./components/ProjectsSidebar";
 import KanbanBoard from "./components/KanbanBoard";
+import WorkBuddy from "./components/WorkBuddy";
 
 function App() {
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
@@ -39,10 +40,7 @@ function App() {
         />
       </div>
       
-      <div className="sidebar-right">
-        <h2>WorkBuddy</h2>
-        <p>AI chat coming soon...</p>
-      </div>
+      <WorkBuddy />
     </div>
   );
 }
