@@ -882,3 +882,108 @@ body {
   0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
   30% { transform: translateY(-6px); opacity: 1; }
 }
+
+/* Streaming cursor */
+.cursor-blink {
+  display: inline-block;
+  animation: blink 1s step-end infinite;
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* WorkBuddy Settings */
+.settings-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+
+.settings-btn:hover {
+  opacity: 1;
+}
+
+.settings-panel {
+  background: #161b22;
+  border-bottom: 1px solid #30363d;
+  padding: 16px;
+}
+
+.settings-panel h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #cdd9e5;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.setting-group {
+  margin-bottom: 12px;
+}
+
+.setting-group label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #adbac7;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.setting-group input,
+.setting-group select {
+  width: 100%;
+  padding: 6px 10px;
+  background: #1c2128;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #e6edf3;
+  outline: none;
+}
+
+.setting-group input:focus,
+.setting-group select:focus {
+  border-color: #388bfd;
+}
+
+.setting-group small {
+  display: block;
+  font-size: 10px;
+  color: #7d8590;
+  margin-top: 4px;
+}
+
+.setting-group small a {
+  color: #58a6ff;
+  text-decoration: none;
+}
+
+.setting-group small a:hover {
+  text-decoration: underline;
+}
+
+.close-settings-btn {
+  width: 100%;
+  padding: 6px;
+  background: #21262d;
+  color: #e6edf3;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.close-settings-btn:hover {
+  background: #30363d;
+}

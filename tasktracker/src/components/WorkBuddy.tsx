@@ -8,6 +8,8 @@ interface Message {
   timestamp: Date;
 }
 
+type AIProvider = "gemini" | "ollama";
+
 export default function WorkBuddy() {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -19,11 +21,31 @@ export default function WorkBuddy() {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [streamingText, setStreamingText] = useState("");
+  const [showSettings, setShowSettings] = useState(false);
+  
+  // Settings
+  const [aiProvider, setAiProvider] = useState<AIProvider>(
+    (localStorage.getItem("aiProvider") as AIProvider) || "ollama"
+  );
+  const [geminiApiKey, setGeminiApiKey] = useState(
+    localStorage.getItem("geminiApiKey") || ""
+  );
+  const [ollamaModel, setOllamaModel] = useState(
+    localStorage.getItem("ollamaModel") || "qwen2.5:3b"
+  );
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, streamingText]);
+
+  useEffect(() => {
+    localStorage.setItem("aiProvider", aiProvider);
+    localStorage.setItem("geminiApiKey", geminiApiKey);
+    localStorage.setItem("ollamaModel", ollamaModel);
+  }, [aiProvider, geminiApiKey, ollamaModel]);
 
   function scrollToBottom() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -41,7 +63,7 @@ export default function WorkBuddy() {
   }
 
   function buildContext(tasks: any[]) {
-    if (tasks.length === 0) return "No tasks found.";
+    if (tasks.length === 0) return "No tasks in the system.";
 
     const byProject: Record<string, any[]> = {};
     tasks.forEach(t => {
@@ -52,14 +74,17 @@ export default function WorkBuddy() {
     let context = `TOTAL TASKS: ${tasks.length}\n\n`;
 
     Object.entries(byProject).forEach(([project, projectTasks]) => {
-      context += `PROJECT: "${project}" (${projectTasks.length} tasks)\n`;
-      projectTasks.forEach(t => {
-        context += `  - "${t.title}" | Status: ${t.status} | Priority: ${t.priority}`;
-        if (t.blocker) context += ` | Blocker: ${t.blocker}`;
-        if (t.description) context += ` | Description: ${t.description}`;
-        if (t.start_date) context += ` | Started: ${t.start_date.split('T')[0]}`;
-        if (t.end_date) context += ` | Completed: ${t.end_date.split('T')[0]}`;
-        context += `\n`;
+      context += `PROJECT: ${project}\n`;
+      context += `Task count: ${projectTasks.length}\n`;
+      projectTasks.forEach((t, idx) => {
+        context += `\nTask ${idx + 1}:\n`;
+        context += `  Title: ${t.title}\n`;
+        context += `  Status: ${t.status}\n`;
+        context += `  Priority: ${t.priority}\n`;
+        if (t.blocker) context += `  Blocker: ${t.blocker}\n`;
+        if (t.description) context += `  Description: ${t.description}\n`;
+        if (t.start_date) context += `  Started: ${t.start_date.split('T')[0]}\n`;
+        if (t.end_date) context += `  Completed: ${t.end_date.split('T')[0]}\n`;
       });
       context += `\n`;
     });
@@ -67,61 +92,123 @@ export default function WorkBuddy() {
     return context;
   }
 
-  async function askOllama(question: string, context: string, history: Message[]) {
+  function buildPrompt(question: string, context: string, history: Message[]) {
     const historyText = history
-      .slice(-6)
-      .map(m => `${m.role === "user" ? "User" : "WorkBuddy"}: ${m.text}`)
+      .slice(-8)
+      .map(m => `${m.role === "user" ? "USER" : "WORKBUDDY"}: ${m.text}`)
       .join("\n");
 
-    const prompt = `You are WorkBuddy, an assistant inside a developer's task tracker app.
+    return `You are WorkBuddy, a task management assistant for a software developer.
 
-STATUS WORKFLOW (in order):
+CRITICAL INSTRUCTIONS:
+1. Use ONLY the data provided below. Do not invent, assume, or guess ANY information.
+2. When counting tasks, count EXACTLY what matches the criteria in the data.
+3. When listing tasks, show them on separate lines for readability.
+4. Be concise and direct. No unnecessary elaboration.
+5. If asked something unrelated to tasks (greetings, casual chat, personal questions), respond briefly and naturally WITHOUT dumping task data. Only mention tasks if specifically asked.
+
+STATUS WORKFLOW:
 Not Started → Started → Code Changed → Local Tested → Beta Testing → PR Raised → Prod Deployed
 
-TERMINOLOGY:
-- "PR Raised" = Pull Request raised for code review
-- "Prod Deployed" = task completed and live in production
-- "PR" or "pull request" = PR Raised status
-- "done" or "completed" = Prod Deployed status
-- "in progress" = Started or Code Changed status
-- "blocked" = task has a Blocker value set
-- "testing" = Local Tested or Beta Testing status
+DEFINITIONS:
+- "PR Raised" status = Pull Request has been raised
+- "Prod Deployed" status = Task is completed and in production
+- "blocked" tasks = Tasks that have a Blocker field filled in
+- "in progress" = Tasks with status: Started or Code Changed
+- "testing" = Tasks with status: Local Tested or Beta Testing
 
-TASK DATA (use ONLY this, do not guess):
 ${context}
 
-CONVERSATION HISTORY:
+RECENT CONVERSATION:
 ${historyText}
 
-RULES:
-- Answer ONLY using the task data above. Never guess or assume.
-- Be short and direct. No fluff.
-- If asked to list tasks, keep it brief - just title and status.
-- No bullet points for simple count questions.
-- No "Would you like to know more?" or similar filler endings.
-- Remember previous messages in conversation history.
-- If user asks something not related to tasks or work (e.g. jokes, general chat, personal questions), 
-  respond with something like: "I'm here to help with your tasks. Try asking about blockers, status, or progress."
+EXAMPLES OF GOOD RESPONSES:
 
-User: ${question}
-WorkBuddy:`;
+User: "hi"
+WorkBuddy: "Hey! What do you want to know?"
+
+User: "How many projects?"
+WorkBuddy: "2 projects."
+
+User: "What are they?"
+WorkBuddy: "ELP 2.0 APIs
+VandeMataram APIs"
+
+User: "How many tasks in ELP?"
+WorkBuddy: "2 tasks in ELP 2.0 APIs."
+
+User: "Which tasks?"
+WorkBuddy: "Youth APIs (Code Changed)
+Creator APIs (Beta Testing)"
+
+User: "How many in prod?"
+WorkBuddy: "0 tasks in Prod Deployed."
+
+User: "What's blocked?"
+WorkBuddy: "No blocked tasks."
+
+Now answer this question using ONLY the data above:
+
+USER: ${question}
+WORKBUDDY:`;
+  }
+
+  async function askGemini(question: string, context: string, history: Message[]) {
+    if (!geminiApiKey) {
+      throw new Error("Gemini API key not set. Click settings to add it.");
+    }
+
+    const prompt = buildPrompt(question, context, history);
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${geminiApiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: prompt }]
+          }],
+          generationConfig: {
+            temperature: 0.1,
+            maxOutputTokens: 200,
+          }
+        })
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || "Gemini API error");
+    }
+
+    const data = await response.json();
+    return data.candidates[0].content.parts[0].text.trim();
+  }
+
+  async function askOllama(question: string, context: string, history: Message[]) {
+    const prompt = buildPrompt(question, context, history);
 
     const response = await fetch("http://localhost:11434/api/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "llama3.2:3b",
+        model: ollamaModel,
         prompt: prompt,
-        stream: false
+        stream: false,
+        options: {
+          temperature: 0.1,
+          num_predict: 200,
+        }
       })
     });
 
     if (!response.ok) {
-      throw new Error("Failed to connect to Ollama");
+      throw new Error("Failed to connect to Ollama. Make sure it's running.");
     }
 
     const data = await response.json();
-    return data.response;
+    return data.response.trim();
   }
 
   async function handleSend() {
@@ -144,7 +231,13 @@ WorkBuddy:`;
     try {
       const tasks = await fetchAllTasks();
       const context = buildContext(tasks);
-      const answer = await askOllama(userText, context, currentMessages);
+      
+      let answer: string;
+      if (aiProvider === "gemini") {
+        answer = await askGemini(userText, context, currentMessages);
+      } else {
+        answer = await askOllama(userText, context, currentMessages);
+      }
 
       const aiMessage: Message = {
         id: Date.now() + 1,
@@ -154,11 +247,11 @@ WorkBuddy:`;
       };
       setMessages(prev => [...prev, aiMessage]);
 
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage: Message = {
         id: Date.now() + 1,
         role: "assistant",
-        text: "⚠️ Can't connect to Ollama. Make sure it's running on your computer.",
+        text: `⚠️ ${error.message || "Something went wrong."}`,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -180,18 +273,70 @@ WorkBuddy:`;
 
   return (
     <div className="workbuddy">
-      {/* Header */}
       <div className="workbuddy-header">
         <div className="workbuddy-title">
           <span className="workbuddy-icon">🤖</span>
           <span>WorkBuddy</span>
         </div>
-        <span className={`workbuddy-status ${isLoading ? 'status-thinking' : 'status-ready'}`}>
-          {isLoading ? "Thinking..." : "Ready"}
-        </span>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <span className={`workbuddy-status ${isLoading ? 'status-thinking' : 'status-ready'}`}>
+            {isLoading ? "Thinking..." : aiProvider === "gemini" ? "Gemini" : ollamaModel}
+          </span>
+          <button 
+            className="settings-btn" 
+            onClick={() => setShowSettings(!showSettings)}
+            title="Settings"
+          >
+            ⚙️
+          </button>
+        </div>
       </div>
 
-      {/* Messages */}
+      {/* Settings Panel */}
+      {showSettings && (
+        <div className="settings-panel">
+          <h3>AI Settings</h3>
+          
+          <div className="setting-group">
+            <label>AI Provider</label>
+            <select value={aiProvider} onChange={(e) => setAiProvider(e.target.value as AIProvider)}>
+              <option value="gemini">Gemini (Cloud, Fast)</option>
+              <option value="ollama">Ollama (Local, Private)</option>
+            </select>
+          </div>
+
+          {aiProvider === "gemini" && (
+            <div className="setting-group">
+              <label>Gemini API Key</label>
+              <input
+                type="password"
+                value={geminiApiKey}
+                onChange={(e) => setGeminiApiKey(e.target.value)}
+                placeholder="AIza..."
+              />
+              <small>Get free key at <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a></small>
+            </div>
+          )}
+
+          {aiProvider === "ollama" && (
+            <div className="setting-group">
+              <label>Ollama Model</label>
+              <input
+                type="text"
+                value={ollamaModel}
+                onChange={(e) => setOllamaModel(e.target.value)}
+                placeholder="qwen2.5:3b"
+              />
+              <small>Any Ollama model name (e.g., llama3.2:3b, qwen2.5:3b)</small>
+            </div>
+          )}
+
+          <button className="close-settings-btn" onClick={() => setShowSettings(false)}>
+            Done
+          </button>
+        </div>
+      )}
+
       <div className="workbuddy-messages">
         {messages.map((message) => (
           <div
@@ -199,7 +344,9 @@ WorkBuddy:`;
             className={`message ${message.role === "user" ? "message-user" : "message-assistant"}`}
           >
             <div className="message-bubble">
-              {message.text}
+              {message.text.split('\n').map((line, i) => (
+                <div key={i}>{line || '\u00A0'}</div>
+              ))}
             </div>
             <div className="message-time">
               {formatTime(message.timestamp)}
@@ -220,7 +367,6 @@ WorkBuddy:`;
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
       <div className="workbuddy-input-area">
         <textarea
           className="workbuddy-input"
