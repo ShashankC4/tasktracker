@@ -36,9 +36,17 @@ interface ProjectsSidebarProps {
   selectedProjectId: number | null;
   onSelectProject: (id: number | null) => void;
   onSearchResultClick: (projectId: number, taskId: number) => void;
+  showWorkBuddy: boolean;
+  onToggleWorkBuddy: () => void;
 }
 
-export default function ProjectsSidebar({ selectedProjectId, onSelectProject, onSearchResultClick }: ProjectsSidebarProps) {
+export default function ProjectsSidebar({ 
+  selectedProjectId, 
+  onSelectProject, 
+  onSearchResultClick,
+  showWorkBuddy,
+  onToggleWorkBuddy
+}: ProjectsSidebarProps) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
@@ -245,6 +253,12 @@ export default function ProjectsSidebar({ selectedProjectId, onSelectProject, on
       ) : (
         <button className="new-project-btn" onClick={() => setIsCreating(true)}>
           + New Project
+        </button>
+      )}
+
+      {!showWorkBuddy && (
+        <button className="show-workbuddy-btn" onClick={onToggleWorkBuddy}>
+          🤖 Show AI Assistant
         </button>
       )}
     </div>

@@ -987,3 +987,24 @@ body {
 .close-settings-btn:hover {
   background: #30363d;
 }
+
+/* Show WorkBuddy button in sidebar */
+.show-workbuddy-btn {
+  width: 100%;
+  padding: 8px 12px;
+  background: #1c2128;
+  color: #adbac7;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  text-align: center;
+  transition: all 0.15s;
+  margin-top: 12px;
+}
+
+.show-workbuddy-btn:hover {
+  color: #58a6ff;
+  border-color: #388bfd;
+  background: #22272e;
+}

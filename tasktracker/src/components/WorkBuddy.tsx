@@ -8,9 +8,14 @@ interface Message {
   timestamp: Date;
 }
 
+interface WorkBuddyProps {
+  onClose: () => void;
+}
+
+
 type AIProvider = "gemini" | "ollama";
 
-export default function WorkBuddy() {
+export default function WorkBuddy({ onClose }: WorkBuddyProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -288,6 +293,13 @@ WORKBUDDY:`;
             title="Settings"
           >
             ⚙️
+          </button>
+          <button 
+            className="close-btn" 
+            onClick={onClose}
+            title="Close AI Assistant"
+          >
+            ×
           </button>
         </div>
       </div>

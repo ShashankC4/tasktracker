@@ -8,6 +8,9 @@ import WorkBuddy from "./components/WorkBuddy";
 function App() {
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const [scrollToTaskId, setScrollToTaskId] = useState<number | null>(null);
+  
+  // New State: Tracks if the AI Assistant is visible
+  const [showWorkBuddy, setShowWorkBuddy] = useState(false);
 
   useEffect(() => {
     initDatabase().then(() => {
@@ -31,6 +34,8 @@ function App() {
         selectedProjectId={selectedProjectId}
         onSelectProject={handleSelectProject}
         onSearchResultClick={handleSearchResultClick}
+        showWorkBuddy={showWorkBuddy} // Pass state
+        onToggleWorkBuddy={() => setShowWorkBuddy(!showWorkBuddy)} // Pass toggle function
       />
       
       <div className="main-content">
@@ -40,7 +45,8 @@ function App() {
         />
       </div>
       
-      <WorkBuddy />
+      {/* Only show WorkBuddy if showWorkBuddy is true */}
+      {showWorkBuddy && <WorkBuddy onClose={() => setShowWorkBuddy(false)} />}
     </div>
   );
 }
