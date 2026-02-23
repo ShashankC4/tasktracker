@@ -12,8 +12,7 @@ interface WorkBuddyProps {
   onClose: () => void;
 }
 
-
-type AIProvider = "gemini" | "ollama";
+type AIProvider = "openrouter" | "ollama";
 
 export default function WorkBuddy({ onClose }: WorkBuddyProps) {
   const [messages, setMessages] = useState<Message[]>([
@@ -26,15 +25,17 @@ export default function WorkBuddy({ onClose }: WorkBuddyProps) {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [streamingText, setStreamingText] = useState("");
   const [showSettings, setShowSettings] = useState(false);
   
   // Settings
   const [aiProvider, setAiProvider] = useState<AIProvider>(
     (localStorage.getItem("aiProvider") as AIProvider) || "ollama"
   );
-  const [geminiApiKey, setGeminiApiKey] = useState(
-    localStorage.getItem("geminiApiKey") || ""
+  const [openrouterApiKey, setOpenrouterApiKey] = useState(
+    localStorage.getItem("openrouterApiKey") || ""
+  );
+  const [openrouterModel, setOpenrouterModel] = useState(
+    localStorage.getItem("openrouterModel") || "arcee-ai/trinity-large-preview:free"
   );
   const [ollamaModel, setOllamaModel] = useState(
     localStorage.getItem("ollamaModel") || "qwen2.5:3b"
@@ -44,13 +45,14 @@ export default function WorkBuddy({ onClose }: WorkBuddyProps) {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, streamingText]);
+  }, [messages]);
 
   useEffect(() => {
     localStorage.setItem("aiProvider", aiProvider);
-    localStorage.setItem("geminiApiKey", geminiApiKey);
+    localStorage.setItem("openrouterApiKey", openrouterApiKey);
+    localStorage.setItem("openrouterModel", openrouterModel);
     localStorage.setItem("ollamaModel", ollamaModel);
-  }, [aiProvider, geminiApiKey, ollamaModel]);
+  }, [aiProvider, openrouterApiKey, openrouterModel, ollamaModel]);
 
   function scrollToBottom() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -158,37 +160,36 @@ USER: ${question}
 WORKBUDDY:`;
   }
 
-  async function askGemini(question: string, context: string, history: Message[]) {
-    if (!geminiApiKey) {
-      throw new Error("Gemini API key not set. Click settings to add it.");
+  async function askOpenRouter(question: string, context: string, history: Message[]) {
+    if (!openrouterApiKey) {
+      throw new Error("OpenRouter API key not set. Click settings to add it.");
     }
 
     const prompt = buildPrompt(question, context, history);
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${geminiApiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{ text: prompt }]
-          }],
-          generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: 200,
-          }
-        })
-      }
-    );
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${openrouterApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: openrouterModel,
+        messages: [
+          { role: "user", content: prompt }
+        ],
+        temperature: 0.1,
+        max_tokens: 200,
+      })
+    });
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error?.message || "Gemini API error");
+      throw new Error(error.error?.message || "OpenRouter API error");
     }
 
     const data = await response.json();
-    return data.candidates[0].content.parts[0].text.trim();
+    return data.choices[0].message.content.trim();
   }
 
   async function askOllama(question: string, context: string, history: Message[]) {
@@ -238,8 +239,8 @@ WORKBUDDY:`;
       const context = buildContext(tasks);
       
       let answer: string;
-      if (aiProvider === "gemini") {
-        answer = await askGemini(userText, context, currentMessages);
+      if (aiProvider === "openrouter") {
+        answer = await askOpenRouter(userText, context, currentMessages);
       } else {
         answer = await askOllama(userText, context, currentMessages);
       }
@@ -276,6 +277,13 @@ WORKBUDDY:`;
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
+  function getModelDisplayName() {
+    if (aiProvider === "openrouter") {
+      return "OpenRouter";
+    }
+    return ollamaModel;
+  }
+
   return (
     <div className="workbuddy">
       <div className="workbuddy-header">
@@ -285,7 +293,7 @@ WORKBUDDY:`;
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <span className={`workbuddy-status ${isLoading ? 'status-thinking' : 'status-ready'}`}>
-            {isLoading ? "Thinking..." : aiProvider === "gemini" ? "Gemini" : ollamaModel}
+            {isLoading ? "Thinking..." : getModelDisplayName()}
           </span>
           <button 
             className="settings-btn" 
@@ -312,22 +320,32 @@ WORKBUDDY:`;
           <div className="setting-group">
             <label>AI Provider</label>
             <select value={aiProvider} onChange={(e) => setAiProvider(e.target.value as AIProvider)}>
-              <option value="gemini">Gemini (Cloud, Fast)</option>
+              <option value="openrouter">OpenRouter (Cloud, Free)</option>
               <option value="ollama">Ollama (Local, Private)</option>
             </select>
           </div>
 
-          {aiProvider === "gemini" && (
-            <div className="setting-group">
-              <label>Gemini API Key</label>
-              <input
-                type="password"
-                value={geminiApiKey}
-                onChange={(e) => setGeminiApiKey(e.target.value)}
-                placeholder="AIza..."
-              />
-              <small>Get free key at <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a></small>
-            </div>
+          {aiProvider === "openrouter" && (
+            <>
+              <div className="setting-group">
+                <label>OpenRouter API Key</label>
+                <input
+                  type="password"
+                  value={openrouterApiKey}
+                  onChange={(e) => setOpenrouterApiKey(e.target.value)}
+                  placeholder="sk-or-..."
+                />
+                <small>Get free key at <a href="https://openrouter.ai/models?order=newest&supported_parameters=tools&q=free" target="_blank">OpenRouter</a></small>
+              </div>
+              <div className="setting-group">
+                <label>Model</label>
+                <select value={openrouterModel} onChange={(e) => setOpenrouterModel(e.target.value)}>
+                  <option value="nvidia/nemotron-3-nano-30b-a3b:free">Nvidia (Free)</option>
+                  <option value="stepfun/step-3.5-flash:free">Step fun (Free)</option>
+                  <option value="arcee-ai/trinity-large-preview:free">Acree (Free)</option>
+                </select>
+              </div>
+            </>
           )}
 
           {aiProvider === "ollama" && (
