@@ -52,7 +52,6 @@ export default function ProjectsSidebar({
   const [newProjectName, setNewProjectName] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<TaskSearchResult[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
   const sensors = useSensors(
@@ -100,7 +99,6 @@ export default function ProjectsSidebar({
   }
 
   async function searchTasks(query: string) {
-    setIsSearching(true);
     const db = await getDatabase();
     const results = await db.select<TaskSearchResult[]>(
       `SELECT t.id, t.title, t.project_id, t.status, t.priority, p.name as project_name
@@ -119,7 +117,6 @@ export default function ProjectsSidebar({
     onSearchResultClick(result.project_id, result.id);
     setSearchQuery("");
     setSearchResults([]);
-    setIsSearching(false);
   }
 
   async function createProject() {
