@@ -82,7 +82,6 @@ export default function ProjectsSidebar({
       searchTasks(searchQuery);
     } else {
       setSearchResults([]);
-      setIsSearching(false);
     }
   }, [searchQuery]);
 
