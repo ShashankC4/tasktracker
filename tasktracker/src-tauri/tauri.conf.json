@@ -14,7 +14,9 @@
       {
         "title": "tasktracker",
         "width": 1400,
-        "height": 900
+        "height": 900,
+        "fullscreen": false,
+        "maximized": true
       }
     ],
     "security": {
