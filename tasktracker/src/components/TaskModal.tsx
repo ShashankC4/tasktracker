@@ -13,7 +13,7 @@ export default function TaskModal({ projectId, taskId, defaultStatus, onClose, o
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState(defaultStatus || "Not Started");
-  const [priority, setPriority] = useState("Medium");
+  const [priority, setPriority] = useState("Low");
   const [blocker, setBlocker] = useState("");
   const [assignedDate, setAssignedDate] = useState("");
   const [startDate, setStartDate] = useState("");

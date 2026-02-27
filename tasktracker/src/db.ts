@@ -27,7 +27,7 @@ export async function initDatabase() {
       description TEXT,
       status TEXT NOT NULL DEFAULT 'Not Started',
       blocker TEXT,
-      priority TEXT DEFAULT 'Medium',
+      priority TEXT DEFAULT 'Low',
       assigned_date TEXT DEFAULT CURRENT_TIMESTAMP,
       start_date TEXT,
       end_date TEXT,

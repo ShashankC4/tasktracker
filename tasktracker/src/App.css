@@ -229,6 +229,12 @@ body {
   flex: 1;
   overflow-y: auto;
   margin-bottom: 10px;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.column-tasks::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
 }
 
 /* ─── Task Cards ─────────────────────────────────────── */
