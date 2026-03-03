@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "tasktracker",
+  "productName": "Task-Tracker",
   "version": "1.0.0",
   "identifier": "com.user.tasktracker",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "tasktracker",
+        "title": "Task-Tracker",
         "width": 1400,
         "height": 900,
         "fullscreen": false,
