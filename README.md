@@ -27,8 +27,8 @@ A desktop task management application for software developers featuring a Kanban
 - Task descriptions
 - Date tracking:
   - Assigned date (manual)
-  - Start date (auto-set when moved to Started or beyond)
-  - End date (auto-set when moved to Prod Deployed)
+  - Start date (auto-set when moved to Started or beyond, can be edited)
+  - End date (auto-set when moved to Prod Deployed, can be edited later)
 
 ### Smart Features
 - Global task search across all projects
@@ -39,17 +39,16 @@ A desktop task management application for software developers featuring a Kanban
 ### AI Assistant (WorkBuddy)
 - Query your tasks using natural language
 - Two provider options:
-  - OpenRouter (cloud-based, free tier available)
-  - Ollama (local, private, offline)
+  - OpenRouter (cloud-based, free tier available, use your API key)
+  - Ollama (local, private, offline, use your own local model)
 - Switchable models and providers
-- Conversation history
-- Collapsible sidebar
+- Conversation history (only in single chat session)
+- Collapsible & sidebar
 
 ### Interface
 - Dark theme inspired by GitHub
 - Clean, minimal design
 - Responsive layout
-- No distracting scrollbars in columns
 
 ## Installation
 
