@@ -4,7 +4,7 @@ A desktop task management application for software developers featuring a Kanban
 
 ## Download
 
-**[Latest Release (v1.0.0)](https://github.com/ShashankC4/task-tracker/releases/latest)**
+**[Latest Release (v1.0.0)](https://github.com/ShashankC4/tasktracker/releases/latest)**
 
 ## Features
 
