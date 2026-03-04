@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./App.css";
 import { initDatabase } from "./db";
 import ProjectsSidebar from "./components/ProjectsSidebar";
@@ -8,9 +8,11 @@ import WorkBuddy from "./components/WorkBuddy";
 function App() {
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const [scrollToTaskId, setScrollToTaskId] = useState<number | null>(null);
-  
-  // New State: Tracks if the AI Assistant is visible
   const [showWorkBuddy, setShowWorkBuddy] = useState(false);
+  const [workbuddyWidth, setWorkbuddyWidth] = useState(
+    parseInt(localStorage.getItem("workbuddyWidth") || "300")
+  );
+  const [isResizing, setIsResizing] = useState(false);
 
   useEffect(() => {
     initDatabase().then(() => {
@@ -18,9 +20,36 @@ function App() {
     });
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem("workbuddyWidth", String(workbuddyWidth));
+  }, [workbuddyWidth]);
+
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newWidth = window.innerWidth - e.clientX;
+      const minWidth = 250;
+      const maxWidth = window.innerWidth * 0.4; // 40% max
+      setWorkbuddyWidth(Math.max(minWidth, Math.min(newWidth, maxWidth)));
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isResizing]);
+
   function handleSelectProject(id: number | null) {
     setSelectedProjectId(id);
-    setScrollToTaskId(null); // Reset scroll when switching projects
+    setScrollToTaskId(null);
   }
 
   function handleSearchResultClick(projectId: number, taskId: number) {
@@ -34,8 +63,8 @@ function App() {
         selectedProjectId={selectedProjectId}
         onSelectProject={handleSelectProject}
         onSearchResultClick={handleSearchResultClick}
-        showWorkBuddy={showWorkBuddy} // Pass state
-        onToggleWorkBuddy={() => setShowWorkBuddy(!showWorkBuddy)} // Pass toggle function
+        showWorkBuddy={showWorkBuddy}
+        onToggleWorkBuddy={() => setShowWorkBuddy(!showWorkBuddy)}
       />
       
       <div className="main-content">
@@ -45,8 +74,17 @@ function App() {
         />
       </div>
       
-      {/* Only show WorkBuddy if showWorkBuddy is true */}
-      {showWorkBuddy && <WorkBuddy onClose={() => setShowWorkBuddy(false)} />}
+      {showWorkBuddy && (
+        <>
+          <div
+            className="resize-handle"
+            onMouseDown={() => setIsResizing(true)}
+          />
+          <div style={{ width: `${workbuddyWidth}px` }}>
+            <WorkBuddy onClose={() => setShowWorkBuddy(false)} />
+          </div>
+        </>
+      )}
     </div>
   );
 }

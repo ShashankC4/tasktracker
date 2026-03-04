@@ -699,14 +699,35 @@ body {
 /* ─── WorkBuddy ──────────────────────────────────────── */
 
 .workbuddy {
-  width: 300px;
-  min-width: 300px;
-  flex-shrink: 0;
+  width: 100%;
   background-color: #0d1117;
   border-left: 1px solid #30363d;
   display: flex;
   flex-direction: column;
   height: 100vh;
+}
+
+/* Resize handle */
+.resize-handle {
+  width: 4px;
+  background: transparent;
+  cursor: ew-resize;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.resize-handle:hover {
+  background: #388bfd;
+}
+
+.resize-handle::before {
+  content: '';
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  top: 0;
+  bottom: 0;
 }
 
 .workbuddy-header {
