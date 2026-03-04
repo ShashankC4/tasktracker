@@ -152,8 +152,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 ## Roadmap
 
-- Task notes for detailed work logs
-- Sub tasks
+- Proper working UI & AI
+- Completely user friendly customisable workflow
 
 ## Support
 
