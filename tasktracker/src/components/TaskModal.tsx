@@ -46,9 +46,24 @@ export default function TaskModal({ projectId, taskId, defaultStatus, onClose, o
     }
   }, [taskId]);
 
+  // Add keyboard handler for Enter key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && !e.shiftKey && (e.target as HTMLElement).tagName !== "TEXTAREA") {
+        e.preventDefault();
+        handleSave();
+      }
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [title, description, status, priority, blocker, assignedDate, startDate, endDate]);
+
   function formatDateForInput(dateStr: string | null): string {
     if (!dateStr) return "";
-    // Handle both ISO format and SQLite format
     return dateStr.split('T')[0].split(' ')[0];
   }
 
@@ -84,7 +99,6 @@ export default function TaskModal({ projectId, taskId, defaultStatus, onClose, o
     const now = new Date().toISOString();
 
     if (taskId) {
-      // Update existing task
       await db.execute(
         `UPDATE tasks SET 
           title = ?, 
@@ -110,7 +124,6 @@ export default function TaskModal({ projectId, taskId, defaultStatus, onClose, o
         ]
       );
     } else {
-      // Auto-set dates based on status when creating
       const autoStartDate = STARTED_STATUSES.includes(status) ? now : null;
       const autoEndDate = status === "Prod Deployed" ? now : null;
 
@@ -162,6 +175,7 @@ export default function TaskModal({ projectId, taskId, defaultStatus, onClose, o
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Task title"
               autoFocus
+              spellCheck
             />
           </div>
 
@@ -172,6 +186,7 @@ export default function TaskModal({ projectId, taskId, defaultStatus, onClose, o
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Task description (optional)"
               rows={3}
+              spellCheck
             />
           </div>
 
@@ -202,10 +217,10 @@ export default function TaskModal({ projectId, taskId, defaultStatus, onClose, o
               value={blocker}
               onChange={(e) => setBlocker(e.target.value)}
               placeholder="What's blocking this task? (optional)"
+              spellCheck
             />
           </div>
 
-          {/* Dates */}
           <div className="form-row">
             <div className="form-group">
               <label>Assigned Date</label>
