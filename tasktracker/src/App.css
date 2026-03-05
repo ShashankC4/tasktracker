@@ -12,6 +12,8 @@ body {
   font-family: system-ui, -apple-system, sans-serif;
   background-color: #161b22;
   color: #e6edf3;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 /* ─── Layout ─────────────────────────────────────────── */
@@ -29,6 +31,7 @@ body {
   background-color: #161b22;
   padding: 20px;
   overflow-x: auto;
+  overscroll-behavior: none;
 }
 
 /* ─── Projects Sidebar ───────────────────────────────── */
@@ -314,8 +317,11 @@ body {
   padding: 4px 8px;
   border-radius: 4px;
   margin-top: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
-
 /* ─── Add Task Button ────────────────────────────────── */
 
 .add-task-btn {
