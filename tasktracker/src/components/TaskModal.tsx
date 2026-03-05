@@ -212,11 +212,11 @@ export default function TaskModal({ projectId, taskId, defaultStatus, onClose, o
 
           <div className="form-group">
             <label>Blocker</label>
-            <input
-              type="text"
+            <textarea
               value={blocker}
               onChange={(e) => setBlocker(e.target.value)}
               placeholder="What's blocking this task? (optional)"
+              rows={2}
               spellCheck
             />
           </div>
