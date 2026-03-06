@@ -1041,3 +1041,50 @@ body {
   border-color: #388bfd;
   background: #22272e;
 }
+
+/* Delete Zone */
+.delete-zone {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  pointer-events: auto;
+  opacity: 0.5;
+  transition: opacity 0.3s;
+}
+
+.delete-zone-active {
+  opacity: 0.75;
+}
+
+.delete-dropzone {
+  width: 90px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.delete-zone-active .delete-dropzone {
+  transform: scale(1.1);
+}
+
+.delete-icon {
+  font-size: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 85px;
+  height: 85px;
+  background: #1c2128;
+  border: 2px solid #444c56;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.delete-zone-active .delete-icon {
+  background: #2d1517;
+  border-color: #f85149;
+}

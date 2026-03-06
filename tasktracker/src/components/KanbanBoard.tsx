@@ -3,14 +3,14 @@ import { getDatabase } from "../db";
 import TaskModal from "./TaskModal";
 import {
   DndContext,
-  closestCenter,
   PointerSensor,
   useSensor,
   useSensors,
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
-  useDroppable,  // Add this
+  useDroppable,
+  pointerWithin,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -65,6 +65,7 @@ export default function KanbanBoard({ projectId, scrollToTaskId }: KanbanBoardPr
   const [newTaskStatus, setNewTaskStatus] = useState<string | null>(null);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [scrollPositions, setScrollPositions] = useState<Record<number, number>>({});
+  const [isOverDelete, setIsOverDelete] = useState(false);
   const kanbanRef = useRef<HTMLDivElement>(null);
 
   const sensors = useSensors(
@@ -169,11 +170,21 @@ export default function KanbanBoard({ projectId, scrollToTaskId }: KanbanBoardPr
   async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     setActiveTask(null);
+    setIsOverDelete(false);
 
     if (!over) return;
 
     const taskId = Number(active.id);
     const overId = String(over.id);
+
+    // Check if dropped on delete zone
+    if (overId === "delete-zone") {
+      const db = await getDatabase();
+      await db.execute("DELETE FROM tasks WHERE id = ?", [taskId]);
+      loadTasks();
+      return;
+    }
+
     const task = tasks.find(t => t.id === taskId);
     
     if (!task) return;
@@ -257,7 +268,7 @@ export default function KanbanBoard({ projectId, scrollToTaskId }: KanbanBoardPr
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={pointerWithin}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
@@ -300,6 +311,12 @@ export default function KanbanBoard({ projectId, scrollToTaskId }: KanbanBoardPr
         </div>
       </div>
 
+      {activeTask && (
+        <div className={`delete-zone ${isOverDelete ? 'delete-zone-active' : ''}`}>
+          <DeleteDropZone onHover={setIsOverDelete} />
+        </div>
+      )}
+
       <DragOverlay dropAnimation={null}>
         {activeTask ? (
           <div className="task-card task-card-dragging">
@@ -335,6 +352,20 @@ function DroppableColumn({ id, children }: { id: string; children: React.ReactNo
   return (
     <div ref={setNodeRef} className="kanban-column">
       {children}
+    </div>
+  );
+}
+
+function DeleteDropZone({ onHover }: { onHover: (isOver: boolean) => void }) {
+  const { setNodeRef, isOver } = useDroppable({ id: "delete-zone" });
+  
+  useEffect(() => {
+    onHover(isOver);
+  }, [isOver, onHover]);
+
+  return (
+    <div ref={setNodeRef} className="delete-dropzone">
+      <span className="delete-icon">🗑️</span>
     </div>
   );
 }
