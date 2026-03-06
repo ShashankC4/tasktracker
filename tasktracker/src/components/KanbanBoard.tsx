@@ -9,9 +9,16 @@ import {
   useSensors,
   DragEndEvent,
   DragOverlay,
+  DragStartEvent,
+  useDroppable,  // Add this
 } from "@dnd-kit/core";
-import { useDraggable } from "@dnd-kit/core";
-import { useDroppable } from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface Task {
   id: number;
@@ -24,6 +31,7 @@ interface Task {
   assigned_date: string;
   start_date: string | null;
   end_date: string | null;
+  order_index: number;
 }
 
 interface KanbanBoardProps {
@@ -73,7 +81,6 @@ export default function KanbanBoard({ projectId, scrollToTaskId }: KanbanBoardPr
     }
   }, [projectId]);
 
-  // Save scroll position when switching projects
   useEffect(() => {
     return () => {
       if (projectId && kanbanRef.current) {
@@ -85,15 +92,13 @@ export default function KanbanBoard({ projectId, scrollToTaskId }: KanbanBoardPr
     };
   }, [projectId]);
 
-  // Restore scroll position ONLY when project changes (removed tasks dependency)
   useEffect(() => {
     if (projectId && kanbanRef.current) {
       const savedPosition = scrollPositions[projectId] || 0;
       kanbanRef.current.scrollLeft = savedPosition;
     }
-  }, [projectId]); // <-- removed "tasks" from here
+  }, [projectId]);
 
-  // Scroll to task when search result clicked
   useEffect(() => {
     if (!scrollToTaskId) return;
 
@@ -124,7 +129,7 @@ export default function KanbanBoard({ projectId, scrollToTaskId }: KanbanBoardPr
            )
          )
        )
-       ORDER BY created_at DESC`,
+       ORDER BY order_index ASC, created_at DESC`,
       [projectId]
     );
     setTasks(result);
@@ -156,7 +161,7 @@ export default function KanbanBoard({ projectId, scrollToTaskId }: KanbanBoardPr
     loadTasks();
   }
 
-  function handleDragStart(event: any) {
+  function handleDragStart(event: DragStartEvent) {
     const task = tasks.find(t => t.id === Number(event.active.id));
     setActiveTask(task || null);
   }
@@ -168,25 +173,71 @@ export default function KanbanBoard({ projectId, scrollToTaskId }: KanbanBoardPr
     if (!over) return;
 
     const taskId = Number(active.id);
-    const newStatus = String(over.id);
-
+    const overId = String(over.id);
     const task = tasks.find(t => t.id === taskId);
-    if (!task || task.status === newStatus) return;
+    
+    if (!task) return;
 
+    // Check if dropped on a status column (moving between columns)
+    if (STATUSES.includes(overId)) {
+      const newStatus = overId;
+      if (task.status !== newStatus) {
+        await moveTaskToColumn(taskId, task, newStatus);
+      }
+      return;
+    }
+
+    // Check if dropped on another task
+    const overTask = tasks.find(t => t.id === Number(overId));
+    
+    if (overTask) {
+      // If same status, reorder within column
+      if (task.status === overTask.status) {
+        const statusTasks = getTasksByStatus(task.status);
+        const oldIndex = statusTasks.findIndex(t => t.id === taskId);
+        const newIndex = statusTasks.findIndex(t => t.id === Number(overId));
+
+        if (oldIndex !== newIndex) {
+          const reordered = arrayMove(statusTasks, oldIndex, newIndex);
+          
+          const db = await getDatabase();
+          for (let i = 0; i < reordered.length; i++) {
+            await db.execute(
+              "UPDATE tasks SET order_index = ? WHERE id = ?",
+              [i, reordered[i].id]
+            );
+          }
+          loadTasks();
+        }
+      } else {
+        // Different status, move to that column
+        await moveTaskToColumn(taskId, task, overTask.status);
+      }
+    }
+  }
+
+  async function moveTaskToColumn(taskId: number, task: Task, newStatus: string) {
     const db = await getDatabase();
 
     let updateQuery = "UPDATE tasks SET status = ?, updated_at = CURRENT_TIMESTAMP";
     let params: any[] = [newStatus];
 
-    // Set start_date when moving to any started status (if not already set)
     if (STARTED_STATUSES.includes(newStatus) && !task.start_date) {
       updateQuery += ", start_date = CURRENT_TIMESTAMP";
     }
 
-    // Set end_date when moving to Prod Deployed (if not already set)
     if (newStatus === "Prod Deployed" && !task.end_date) {
       updateQuery += ", end_date = CURRENT_TIMESTAMP";
     }
+
+    // Reset order_index when moving to new column
+    const targetTasks = getTasksByStatus(newStatus);
+    const maxOrder = targetTasks.length > 0 
+      ? Math.max(...targetTasks.map(t => t.order_index)) + 1 
+      : 0;
+    
+    updateQuery += ", order_index = ?";
+    params.push(maxOrder);
 
     updateQuery += " WHERE id = ?";
     params.push(taskId);
@@ -223,13 +274,18 @@ export default function KanbanBoard({ projectId, scrollToTaskId }: KanbanBoardPr
                 </div>
 
                 <div className="column-tasks">
-                  {statusTasks.map((task) => (
-                    <DraggableTask
-                      key={task.id}
-                      task={task}
-                      onEdit={() => openEditModal(task.id)}
-                    />
-                  ))}
+                  <SortableContext
+                    items={statusTasks.map(t => t.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {statusTasks.map((task) => (
+                      <SortableTask
+                        key={task.id}
+                        task={task}
+                        onEdit={() => openEditModal(task.id)}
+                      />
+                    ))}
+                  </SortableContext>
                 </div>
 
                 <button
@@ -273,7 +329,6 @@ export default function KanbanBoard({ projectId, scrollToTaskId }: KanbanBoardPr
   );
 }
 
-// Droppable Column
 function DroppableColumn({ id, children }: { id: string; children: React.ReactNode }) {
   const { setNodeRef } = useDroppable({ id });
 
@@ -284,11 +339,22 @@ function DroppableColumn({ id, children }: { id: string; children: React.ReactNo
   );
 }
 
-// Draggable Task
-function DraggableTask({ task, onEdit }: { task: Task; onEdit: () => void }) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: task.id,
-  });
+function SortableTask({ task, onEdit }: { task: Task; onEdit: () => void }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.3 : 1,
+    cursor: isDragging ? 'grabbing' : 'grab',
+  };
 
   return (
     <div
@@ -298,10 +364,7 @@ function DraggableTask({ task, onEdit }: { task: Task; onEdit: () => void }) {
       {...attributes}
       className={`task-card priority-${task.priority.toLowerCase()}`}
       onClick={onEdit}
-      style={{
-        opacity: isDragging ? 0.3 : 1,
-        cursor: isDragging ? 'grabbing' : 'grab'
-      }}
+      style={style}
     >
       <div className="task-header">
         <span className={`priority-indicator ${task.priority.toLowerCase()}`}></span>

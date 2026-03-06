@@ -5,10 +5,8 @@ let db: Database | null = null;
 export async function initDatabase() {
   if (db) return db;
 
-  // Create/open database
   db = await Database.load("sqlite:tasktracker.db");
 
-  // Create projects table
   await db.execute(`
     CREATE TABLE IF NOT EXISTS projects (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -18,7 +16,6 @@ export async function initDatabase() {
     )
   `);
 
-  // Create tasks table
   await db.execute(`
     CREATE TABLE IF NOT EXISTS tasks (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,11 +28,21 @@ export async function initDatabase() {
       assigned_date TEXT DEFAULT CURRENT_TIMESTAMP,
       start_date TEXT,
       end_date TEXT,
+      order_index INTEGER DEFAULT 0,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
     )
   `);
+
+  // Migration: Add order_index to existing tasks if it doesn't exist
+  try {
+    await db.execute(`
+      ALTER TABLE tasks ADD COLUMN order_index INTEGER DEFAULT 0
+    `);
+  } catch (e) {
+    // Column already exists, ignore
+  }
 
   return db;
 }
